@@ -8,6 +8,12 @@ pipeline {
         } 
           }
 
+    environment {
+        DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:latest"
+        DOCKER_CREDENTIALS = 'dockerhub-creds'   // Docker Hub credentials ID
+        GIT_CREDENTIALS = 'git-creds'            // GitHub credentials ID
+    }
+
     stages {
         stage('Checkout DevOps Dashboard Repo') {
             steps {
