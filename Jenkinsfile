@@ -21,7 +21,8 @@ environment {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("vengateshbabu1605/devops-dashboard:latest")
+                    dockerImage = docker.build("vengateshbabu1605/devops-dashboard:latest",
+                "--no-cache .")
                 }
             }
         }
