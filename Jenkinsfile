@@ -3,6 +3,8 @@ pipeline {
         docker {
             image 'vengateshbabu1605/devops-ci-agent:latest'
             args '-u root:root'
+            label 'blackkey'
+            reuseNode true
         }
     }
 
