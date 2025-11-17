@@ -1,5 +1,10 @@
 FROM python:3.10-slim
 
+ ENV http_proxy http://proxy-dmz.intel.com:912
+ ENV HTTP_PROXY http://proxy-dmz.intel.com:912
+ ENV http_proxy http://proxy-dmz.intel.com:912
+ ENV HTTP_PROXY http://proxy-dmz.intel.com:912
+
 WORKDIR /app
 
 COPY app/requirements.txt .
