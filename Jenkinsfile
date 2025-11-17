@@ -1,4 +1,3 @@
-# Jenkins pipeline definition
 pipeline {
     agent {
         docker {
