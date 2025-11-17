@@ -1,5 +1,11 @@
 pipeline {
-    agent any
+    agent {
+
+        label 'blackkey'
+        }
+
+
+    }
 
     stages {
         stage('Checkout') {
