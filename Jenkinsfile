@@ -6,8 +6,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
         DOCKER_REGISTRY = "docker.io" // Change if using a different registry
-        DOCKERHUB_USER = credentials('dockerhub-token')
-        DOCKERHUB_TOKEN = credentials('dockerhub-token')
+        DOCKER_CREDS = credentials('dockerhub-token')
     }
 
     stages {
@@ -49,20 +48,20 @@ pipeline {
         }
 
         
-        stage('Docker Login') {
+       
+
+       
+        stage('Docker Login and Push') {
             steps {
-                sh 'docker logout || true'
-                sh 'echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USER --password-stdin'
+                sh '''
+                    docker logout || true
+                    echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin
+                    docker tag vengateshbabu1605/devops-dashboard:49 docker.io/vengateshbabu1605/devops-dashboard:49
+                    docker push docker.io/vengateshbabu1605/devops-dashboard:49
+                '''
             }
         }
-
-        stage('Push Docker Image') {
-            steps {
-                
-                sh 'docker tag vengateshbabu1605/devops-dashboard:49 docker.io/vengateshbabu1605/devops-dashboard:49'
-                sh 'docker push docker.io/vengateshbabu1605/devops-dashboard:49'
-                }
-            }
+    
         }
     
 
