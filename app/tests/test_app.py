@@ -4,8 +4,8 @@ import os
 # Ensure the parent directory (where main.py lives) is in sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from main import app
-from fastapi.testclient import TestClient
+from main import app  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 
 client = TestClient(app)
 
