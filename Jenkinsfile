@@ -58,12 +58,7 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    // Push the image to the Docker registry (needs credentials configured in Jenkins)
-                   // docker.withRegistry("https://${DOCKER_REGISTRY}", "dockerhub-creds") {
-                       // dockerImage.push()
-                    
-                    }
+                
                 sh 'docker tag vengateshbabu1605/devops-dashboard:49 docker.io/vengateshbabu1605/devops-dashboard:49'
                 sh 'docker push docker.io/vengateshbabu1605/devops-dashboard:49'
                 }
