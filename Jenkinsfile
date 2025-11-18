@@ -50,7 +50,7 @@ pipeline {
             steps {
                 script {
                     // Push the image to the Docker registry (needs credentials configured in Jenkins)
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", "dockerhub-creds") {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", "dockerhub-token") {
                         dockerImage.push()
                     }
                 }
