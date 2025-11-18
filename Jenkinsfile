@@ -7,7 +7,8 @@ pipeline {
         // Set proxy if needed
         // http_proxy  = 'http://your-proxy:port'
         // https_proxy = 'http://your-proxy:port'
-        DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
+        //DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
+        DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:latest"
         DOCKER_REGISTRY = "docker.io" // Change to your registry
     }
 
