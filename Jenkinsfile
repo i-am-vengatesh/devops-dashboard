@@ -1,15 +1,11 @@
 pipeline {
     agent {
-        label 'blackkey'
+        label 'blackkey' // Your Jenkins agent label
     }
 
     environment {
-        // Set proxy if needed
-        // http_proxy  = 'http://your-proxy:port'
-        // https_proxy = 'http://your-proxy:port'
-        //DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
-        DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:latest"
-        DOCKER_REGISTRY = "docker.io" // Change to your registry
+        DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
+        DOCKER_REGISTRY = "docker.io" // Change if using a different registry
     }
 
     stages {
@@ -19,18 +15,22 @@ pipeline {
             }
         }
 
-        stage('Lint') {
-            steps {
-                // If you want linting; adjust as needed
-                sh 'pip install flake8'
-                sh 'flake8 app/ --count --show-source --statistics'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Build the Docker image with a unique tag per build
                     dockerImage = docker.build(DOCKER_IMAGE, "--no-cache .")
+                }
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                script {
+                    // Run flake8 inside the Docker container
+                    dockerImage.inside {
+                        sh 'flake8 app/ --count --show-source --statistics'
+                    }
                 }
             }
         }
@@ -38,18 +38,18 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
+                    // Run pytest inside the Docker container
                     dockerImage.inside {
-                        // If you want JUnit XML output for reporting:
-                        sh 'pytest app/tests/ --junitxml=app/tests/results.xml'
+                        sh 'pytest app/tests/'
                     }
                 }
             }
         }
 
         stage('Push Docker Image') {
-            
             steps {
                 script {
+                    // Push the image to the Docker registry (needs credentials configured in Jenkins)
                     docker.withRegistry("https://${DOCKER_REGISTRY}", "docker-credentials-id") {
                         dockerImage.push()
                     }
@@ -60,12 +60,10 @@ pipeline {
 
     post {
         always {
-            // Publish test results if you output JUnit XML
-            junit 'app/tests/results.xml'
-            cleanWs()
+            cleanWs() // Clean workspace after build
         }
         success {
-            echo "Build, test, and push stages succeeded!"
+            echo "Build, lint, test, and push stages succeeded!"
         }
         failure {
             echo "Pipeline failed!"
