@@ -6,8 +6,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
         DOCKER_REGISTRY = "docker.io" // Change if using a different registry
-        DOCKERHUB_USER = credentials('vengateshbabu1605')
-        DOCKERHUB_TOKEN = credentials('Dockerbabu@123')
+        DOCKERHUB_USER = credentials('dockerhub-creds')
+        DOCKERHUB_TOKEN = credentials('dockerhub-creds')
     }
 
     stages {
