@@ -6,6 +6,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
         DOCKER_REGISTRY = "docker.io" // Change if using a different registry
+        DOCKERHUB_USER = credentials('vengateshbabu1605')
+        DOCKERHUB_TOKEN = credentials('Dockerbabu@123')
     }
 
     stages {
@@ -46,12 +48,22 @@ pipeline {
             }
         }
 
+        
+        stage('Docker Login') {
+            steps {
+                sh 'docker logout || true'
+                sh 'echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USER --password-stdin'
+            }
+        }
+
         stage('Push Docker Image') {
             steps {
                 script {
                     // Push the image to the Docker registry (needs credentials configured in Jenkins)
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", "dockerhub-creds") {
-                        dockerImage.push()
+                   // docker.withRegistry("https://${DOCKER_REGISTRY}", "dockerhub-creds") {
+                       // dockerImage.push()
+                    sh 'docker tag vengateshbabu1605/devops-dashboard:49 docker.io/vengateshbabu1605/devops-dashboard:49'
+                    sh 'docker push docker.io/vengateshbabu1605/devops-dashboard:49'
                     }
                 }
             }
