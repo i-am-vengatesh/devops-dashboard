@@ -56,7 +56,7 @@ pipeline {
                 sh '''
                     docker logout || true
                     echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin
-                    docker tag vengateshbabu1605/devops-dashboard:49 docker.io/vengateshbabu1605/devops-dashboard:49
+                    docker tag vengateshbabu1605/devops-dashboard:49 docker.io/vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}
                     docker push docker.io/vengateshbabu1605/devops-dashboard:49
                 '''
             }
