@@ -46,10 +46,7 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            when {
-                // Optional: only push on main branch, etc.
-                // branch 'main'
-            }
+            
             steps {
                 script {
                     docker.withRegistry("https://${DOCKER_REGISTRY}", "docker-credentials-id") {
