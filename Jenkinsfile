@@ -1,12 +1,13 @@
 pipeline {
     agent {
-        label 'blackkey' // Your Jenkins agent label
+        label 'blackkey'
     }
 
     environment {
         DOCKER_IMAGE = "vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}"
-        DOCKER_REGISTRY = "docker.io" // Change if using a different registry
         DOCKER_CREDS = credentials('dockerhub-token')
+        GIT_CRED_ID = 'git-creds'
+        GIT_REPO_URL = 'https://github.com/i-am-vengatesh/devops-dashboard.git'
     }
 
     stages {
@@ -19,7 +20,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image with a unique tag per build
                     dockerImage = docker.build(DOCKER_IMAGE, "--no-cache .")
                 }
             }
@@ -28,7 +28,6 @@ pipeline {
         stage('Lint') {
             steps {
                 script {
-                    // Run flake8 inside the Docker container
                     dockerImage.inside {
                         sh 'flake8 app/ --count --show-source --statistics'
                     }
@@ -39,7 +38,6 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    // Run pytest inside the Docker container
                     dockerImage.inside {
                         sh 'pytest app/tests/'
                     }
@@ -47,30 +45,43 @@ pipeline {
             }
         }
 
-        
-       
-
-       
         stage('Docker Login and Push') {
             steps {
                 sh '''
                     docker logout || true
                     echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin
-                    docker tag vengateshbabu1605/devops-dashboard:49 docker.io/vengateshbabu1605/devops-dashboard:${env.BUILD_NUMBER}
-                    docker push docker.io/vengateshbabu1605/devops-dashboard:49
+                    docker push $DOCKER_IMAGE
                 '''
             }
         }
-    
+
+        stage('Update Kubernetes Manifest') {
+            steps {
+                sh "sed -i 's|image: .*|image: $DOCKER_IMAGE|g' k8s/deployment.yaml"
+            }
         }
-    
+
+        stage('Commit and Push Manifest to Git') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: env.GIT_CRED_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                    sh '''
+                        git config user.name "jenkins"
+                        git config user.email "jenkins@yourdomain.com"
+                        git add k8s/deployment.yaml
+                        git commit -m "Update image to ${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
+                        git push https://$GIT_USER:$GIT_PASS@github.com/i-am-vengatesh/devops-dashboard.git HEAD:main
+                    '''
+                }
+            }
+        }
+    }
 
     post {
         always {
-            cleanWs() // Clean workspace after build
+            cleanWs()
         }
         success {
-            echo "Build, lint, test, and push stages succeeded!"
+            echo "Build, lint, test, push, and manifest update succeeded!"
         }
         failure {
             echo "Pipeline failed!"
