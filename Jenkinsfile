@@ -8,6 +8,7 @@ pipeline {
         DOCKER_CREDS = credentials('dockerhub-token')
         GIT_CRED_ID = 'git-creds'
         GIT_REPO_URL = 'https://github.com/i-am-vengatesh/devops-dashboard.git'
+        SONAR_AUTH_TOKEN = credentials('sonar-token1')
     }
 
     stages {
@@ -45,6 +46,20 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('MySonarQubeServer') {
+                    sh """
+                        sonar-scanner \
+                          -Dsonar.projectKey=devops-dashboard \
+                          -Dsonar.sources=app \
+                          -Dsonar.host.url=$SONAR_HOST_URL \
+                          -Dsonar.login=$SONAR_AUTH_TOKEN
+                    """
+                }
+            }
+        }
+
         stage('Docker Login and Push') {
             steps {
                 sh '''
@@ -55,25 +70,7 @@ pipeline {
             }
         }
 
-        stage('Update Kubernetes Manifest') {
-            steps {
-                sh "sed -i 's|image: .*|image: $DOCKER_IMAGE|g' k8s/deployment.yaml"
-            }
-        }
-
-        stage('Commit and Push Manifest to Git') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: env.GIT_CRED_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                    sh '''
-                        git config user.name "jenkins"
-                        git config user.email "jenkins@yourdomain.com"
-                        git add k8s/deployment.yaml
-                        git commit -m "Update image to ${BUILD_NUMBER} [ci skip]" || echo "No changes to commit"
-                        git push https://$GIT_USER:$GIT_PASS@github.com/i-am-vengatesh/devops-dashboard.git HEAD:main
-                    '''
-                }
-            }
-        }
+        // ...rest of your pipeline...
     }
 
     post {
