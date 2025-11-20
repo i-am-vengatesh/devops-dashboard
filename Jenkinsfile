@@ -47,18 +47,27 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('MySonarQubeServer') {
-                    sh """
-                        sonar-scanner \
-                          -Dsonar.projectKey=devops-dashboard \
-                          -Dsonar.sources=app \
-                          -Dsonar.host.url=$SONAR_HOST_URL \
-                          -Dsonar.login=$SONAR_AUTH_TOKEN
-                    """
-                }
-            }
+      agent {
+        docker {
+          image 'vengateshbabu1605/sonar-scanner-node:latest'
+          label 'blackkey'
+          reuseNode true
         }
+      }
+      environment {
+        SONAR_TOKEN = credentials('sonar-token1')
+      }
+      steps {
+        sh '''
+          sonar-scanner \
+            -Dsonar.projectKey=devops_dashboard \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=http://10.244.192.41:9000 \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.python.coverage.reportPaths=reports/tests/coverage.xml
+        '''
+      }
+    }
 
         stage('Docker Login and Push') {
             steps {
