@@ -40,34 +40,43 @@ pipeline {
             steps {
                 script {
                     dockerImage.inside {
-                        sh 'pytest app/tests/'
+                        // Generate both coverage and JUnit XML report
+                        sh 'pytest --cov=app --cov-report=xml:reports/tests/coverage.xml --junitxml=reports/tests/results.xml app/tests/'
                     }
                 }
             }
         }
 
         stage('SonarQube Analysis') {
-      agent {
-        docker {
-          image 'vengateshbabu1605/sonar-scanner-node:latest'
-          label 'blackkey'
-          reuseNode true
+            agent {
+                docker {
+                    image 'vengateshbabu1605/sonar-scanner-node:latest'
+                    label 'blackkey'
+                    reuseNode true
+                }
+            }
+            environment {
+                SONAR_TOKEN = credentials('sonar-token1')
+            }
+            steps {
+                sh '''
+                    sonar-scanner \
+                        -Dsonar.projectKey=devops_dashboard \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://10.244.192.41:9000 \
+                        -Dsonar.token=$SONAR_TOKEN \
+                        -Dsonar.python.coverage.reportPaths=reports/tests/coverage.xml
+                '''
+            }
         }
-      }
-      environment {
-        SONAR_TOKEN = credentials('sonar-token1')
-      }
-      steps {
-        sh '''
-          sonar-scanner \
-            -Dsonar.projectKey=devops_dashboard \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=http://10.244.192.41:9000 \
-            -Dsonar.token=$SONAR_TOKEN \
-            -Dsonar.python.coverage.reportPaths=reports/tests/coverage.xml
-        '''
-      }
-    }
+
+        stage('Archive Test Results') {
+            steps {
+                // Archive the JUnit XML and coverage report for Jenkins
+                junit 'reports/tests/results.xml'
+                archiveArtifacts artifacts: 'reports/tests/coverage.xml', allowEmptyArchive: true
+            }
+        }
 
         stage('Docker Login and Push') {
             steps {
@@ -79,7 +88,7 @@ pipeline {
             }
         }
 
-        // ...rest of your pipeline...
+        // ...rest of your pipeline if any...
     }
 
     post {
